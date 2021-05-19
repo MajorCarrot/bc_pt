@@ -36,6 +36,7 @@ class Binarize(Function):
     
     @staticmethod
     def backward(ctx, grad_output: Tensor) -> tuple:
+        # grad_output = doutput/dWb
         return grad_output, None, None
 
 binarize = Binarize.apply
@@ -213,7 +214,7 @@ class BinaryConv2D(_BinaryConvNd):
 
     def forward(self, input: Tensor) -> Tensor:
         weight_binary = binarize(self.weight, self.H, self.deterministic)
-        return self._conv_forward(input, self.weight, self.bias)
+        return self._conv_forward(input, weight_binary, self.bias)
 
     
 def SquareHingeLoss(input, target):

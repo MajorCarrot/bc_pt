@@ -23,21 +23,24 @@ def hard_sigmoid(x: Tensor):
 class Binarize(Function):
     @staticmethod
     def forward(ctx, weight: Tensor, H: float, deterministic: bool=True) -> Tensor:
+        ctx.save_for_backward(weight/H)
         weight_binary = hard_sigmoid(weight / H)
-
         if deterministic:
             weight_binary = torch.round(weight_binary)
         else:
             weight_binary = torch.bernoulli(weight_binary)
             weight_binary = weight_binary.float()
-
         weight_binary = ((2 * weight_binary - 1) * H).float()
         return weight_binary
-    
     @staticmethod
     def backward(ctx, grad_output: Tensor) -> tuple:
         # grad_output = doutput/dWb
-        return grad_output, None, None
+        weight = ctx.saved_tensors
+        weight = weight[0]
+        grad_input = grad_output.clone()
+        grad_input[weight < -1] = 0
+        grad_input[weight > 1] = 0
+        return grad_input, None, None
 
 binarize = Binarize.apply
 

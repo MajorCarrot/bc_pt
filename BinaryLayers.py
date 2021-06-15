@@ -26,7 +26,7 @@ class Binarize(Function):
         weight_binary = hard_sigmoid(weight / H)
 
         if deterministic:
-            weight_binary = torch.round(weight_binary)
+            weight_binary[weight_binary!=0.5] = torch.round(weight_binary[weight_binary!=0.5])
         else:
             weight_binary = torch.bernoulli(weight_binary)
             weight_binary = weight_binary.float()
